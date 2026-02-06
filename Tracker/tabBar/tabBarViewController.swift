@@ -4,7 +4,7 @@ final class TabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let trackerViewController = trackerViewController()
+        let trackerViewController = TrackerViewController()
         trackerViewController.tabBarItem = UITabBarItem(
             title: "Трекеры",
             image: UIImage(resource: .trackerTab),
