@@ -2,18 +2,12 @@ import Foundation
 import CoreData
 
 protocol TrackerRecordDataProviderDelegate: AnyObject {
-    func didUpdate(_ update: TrackerRecordUpdate)
-}
-
-struct TrackerRecordUpdate{
-    let insertedIndexPaths: [IndexPath]
-    let deletedIndexPaths: [IndexPath]
-    let updatedIndexPaths: [IndexPath]
+    func didUpdateRecord(for trackerId: UUID)
 }
 
 protocol TrackerRecordDataProviderProtocol: AnyObject {
     func checkIsCompleted(_ trackerId: UUID, date: Date) -> Bool
-    func countOfcompletedDays(_ trackerId: UUID) -> Int
+    func countOfCompletedDays(_ trackerId: UUID) -> Int
     func addTrackerRecord(_ record: TrackerRecord, trackerCoreData: TrackerCoreData)
     func deleteTrackerRecord(trackerId: UUID, date: Date)
 }
@@ -24,16 +18,15 @@ final class TrackerRecordDataProvider: NSObject, TrackerRecordDataProviderProtoc
     private let context: NSManagedObjectContext
     private let trackerRecordStore: TrackerRecordStore
     
-    private var insertedIndexPaths: [IndexPath] = []
-    private var deletedIndexPaths: [IndexPath] = []
-    private var updatedIndexPaths: [IndexPath] = []
+    private let fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>
     
-    private lazy var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData> = {
-        let fetchRequest = TrackerRecordCoreData.fetchRequest()
+    init(dataStore: TrackerRecordStore, delegate: TrackerRecordDataProviderDelegate) {
+        context = CoreDataStack.shared.context
+        self.trackerRecordStore = dataStore
+        self.delegate = delegate
         
-        fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true),
-        ]
+        let fetchRequest = TrackerRecordCoreData.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)]
         
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
@@ -41,22 +34,12 @@ final class TrackerRecordDataProvider: NSObject, TrackerRecordDataProviderProtoc
             sectionNameKeyPath: nil,
             cacheName: nil
         )
+        self.fetchedResultsController = controller
+        
+        super.init()
         
         controller.delegate = self
-        
-        do {
-            try controller.performFetch()
-        } catch {
-            print("Failed to fetch trackers: \(error)")
-        }
-        
-        return controller
-    }()
-    
-    init(dataStore: TrackerRecordStore, delegate: TrackerRecordDataProviderDelegate) {
-        context = CoreDataStack.shared.context
-        self.trackerRecordStore = dataStore
-        self.delegate = delegate
+        try? controller.performFetch()
     }
     
     func checkIsCompleted(_ trackerId: UUID, date: Date) -> Bool {
@@ -78,7 +61,7 @@ final class TrackerRecordDataProvider: NSObject, TrackerRecordDataProviderProtoc
         }
     }
     
-    func countOfcompletedDays(_ trackerId: UUID) -> Int {
+    func countOfCompletedDays(_ trackerId: UUID) -> Int {
         let request = TrackerRecordCoreData.fetchRequest()
         
         request.predicate = NSPredicate(format: "tracker.id == %@", trackerId as CVarArg)
@@ -103,34 +86,15 @@ final class TrackerRecordDataProvider: NSObject, TrackerRecordDataProviderProtoc
 
 extension TrackerRecordDataProvider: NSFetchedResultsControllerDelegate{
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        insertedIndexPaths.removeAll()
-        deletedIndexPaths.removeAll()
-        updatedIndexPaths.removeAll()
     }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        switch type {
-        case .insert:
-            if let indexPath = newIndexPath { insertedIndexPaths.append(indexPath) }
-        case .delete:
-            if let indexPath = indexPath { deletedIndexPaths.append(indexPath) }
-        case .update:
-            if let indexPath = indexPath { updatedIndexPaths.append(indexPath) }
-        case .move:
-            if let old = indexPath, let new = newIndexPath {
-                deletedIndexPaths.append(old)
-                insertedIndexPaths.append(new)
-            }
-        @unknown default: break
-        }
+        guard let record = anObject as? TrackerRecordCoreData,
+              let trackerId = record.tracker?.id else { return }
+        
+        delegate?.didUpdateRecord(for: trackerId)
     }
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        let update = TrackerRecordUpdate(
-            insertedIndexPaths: insertedIndexPaths,
-            deletedIndexPaths: deletedIndexPaths,
-            updatedIndexPaths: updatedIndexPaths
-        )
-        delegate?.didUpdate(update)
     }
 }

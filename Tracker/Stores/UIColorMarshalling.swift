@@ -1,7 +1,5 @@
 import UIKit
 
-import UIKit
-
 final class UIColorMarshalling{
     func serialize(_ value: UIColor) -> String {
         var result = ""

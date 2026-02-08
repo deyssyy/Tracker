@@ -25,6 +25,7 @@ final class NewTrackerViewController: UIViewController {
     
     weak var delegate: NewTrackerViewControllerDelegate?
     
+    private var collectionViewHeightConstraint: NSLayoutConstraint?
     private var selectedSchedule: [DayOfWeek] = []
     private let maxLength = 38
     private let emojiArray = Emojis.allCases
@@ -34,7 +35,7 @@ final class NewTrackerViewController: UIViewController {
     private var selectedColor: UIColor?
     private let textField = TextFieldWithPadding()
     
-    private lazy var emojiAndColorColletionView: UICollectionView = {
+    private lazy var emojiAndColorCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
         
         collectionView.allowsMultipleSelection = false
@@ -139,6 +140,13 @@ final class NewTrackerViewController: UIViewController {
         setupTapGesture()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        emojiAndColorCollectionView.layoutIfNeeded()
+
+        collectionViewHeightConstraint?.constant = emojiAndColorCollectionView.collectionViewLayout.collectionViewContentSize.height
+    }
+    
     private func setupNavigationController(){
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -216,13 +224,14 @@ final class NewTrackerViewController: UIViewController {
         optionsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         
         
-        mainStackView.addArrangedSubview(emojiAndColorColletionView)
+        mainStackView.addArrangedSubview(emojiAndColorCollectionView)
         mainStackView.addArrangedSubview(buttonStackView)
         
         mainStackView.setCustomSpacing(16, after: optionsTableView)
-        mainStackView.setCustomSpacing(16, after: emojiAndColorColletionView)
+        mainStackView.setCustomSpacing(16, after: emojiAndColorCollectionView)
         
-        emojiAndColorColletionView.heightAnchor.constraint(equalToConstant: 500).isActive = true
+        collectionViewHeightConstraint = emojiAndColorCollectionView.heightAnchor.constraint(equalToConstant: 500)
+        collectionViewHeightConstraint?.isActive = true
         buttonStackView.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
         buttonStackView.addArrangedSubview(cancelButton)
@@ -277,8 +286,11 @@ final class NewTrackerViewController: UIViewController {
     @objc private func createButtonTapped() {
         let trackerTitle = textField.text ?? ""
         let days = selectedSchedule
-        guard let selectedColor = selectedColor else { return }
-        guard let selectedEmoji = selectedEmoji else { return }
+        guard
+            let selectedColor = selectedColor,
+            let selectedEmoji = selectedEmoji
+        else { return }
+        
         let tracker = Tracker(title: trackerTitle, color: selectedColor, emoji: selectedEmoji, days: days)
         let categoryName = "Важное"
         
@@ -395,14 +407,15 @@ extension NewTrackerViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if indexPath.section == 0{
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCollectionViewCell.reuseIdentifier, for: indexPath) as! EmojiCollectionViewCell
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCollectionViewCell.reuseIdentifier, for: indexPath) as? EmojiCollectionViewCell
+            else { return UICollectionViewCell() }
             
             let emoji = emojiArray[indexPath.row].rawValue
             cell.configure(emoji: emoji)
             
             return cell
         } else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCollectionViewCell.reuseIdentifier, for: indexPath) as! ColorCollectionViewCell
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCollectionViewCell.reuseIdentifier, for: indexPath) as? ColorCollectionViewCell else { return UICollectionViewCell() }
             
             let color = availableColors[indexPath.row].uiColor
             cell.configure(color: color)
@@ -424,12 +437,8 @@ extension NewTrackerViewController: UICollectionViewDataSource {
             return UICollectionReusableView()
         }
         
-        if indexPath.section == 0 {
-            header.titleLabel.text = "Emoji"
-        } else {
-            header.titleLabel.text = "Цвет"
-        }
-        
+        header.titleLabel.text = indexPath.section == 0 ? "Emoji" : "Цвет"
+      
         return header
     }
 }

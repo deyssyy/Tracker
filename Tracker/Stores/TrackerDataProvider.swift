@@ -25,7 +25,7 @@ protocol TrackerDataProviderProtocol: AnyObject {
     
     func getTrackerCoreData(at indexPath: IndexPath) -> TrackerCoreData
     func checkIsCompleted(_ trackerId: UUID, date: Date) -> Bool
-    func countOfcompletedDays(_ trackerId: UUID) -> Int
+    func countOfCompletedDays(_ trackerId: UUID) -> Int
 }
 
 final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
@@ -80,7 +80,7 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
     // MARK: - Внешние методы для UI
     
     var isItemsEmpty: Bool {
-        return fetchedResultsController.fetchedObjects?.isEmpty ?? true
+        fetchedResultsController.fetchedObjects?.isEmpty ?? true
     }
     
     var numberOfSections: Int {
@@ -173,7 +173,7 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
         }
     }
     
-    func countOfcompletedDays(_ trackerId: UUID) -> Int {
+    func countOfCompletedDays(_ trackerId: UUID) -> Int {
         let request = TrackerRecordCoreData.fetchRequest()
         
         request.predicate = NSPredicate(format: "tracker.id == %@", trackerId as CVarArg)

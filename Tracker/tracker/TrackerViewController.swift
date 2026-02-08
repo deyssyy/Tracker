@@ -240,7 +240,7 @@ extension TrackerViewController: UICollectionViewDataSource {
         }
         
         guard let isCompleted = trackerRecordDataProvider?.checkIsCompleted(tracker.id, date: datePicker.date),
-              let complitionCount = trackerRecordDataProvider?.countOfcompletedDays(tracker.id)
+              let complitionCount = trackerRecordDataProvider?.countOfCompletedDays(tracker.id)
         else { return UICollectionViewCell() }
         let isFutureDate = selectedDateIsFuture()
         
@@ -290,8 +290,13 @@ extension TrackerViewController: TrackerDataProviderDelegate{
 }
 
 extension TrackerViewController: TrackerRecordDataProviderDelegate{
-    func didUpdate(_ update: TrackerRecordUpdate) {
-        collectionView.reloadData()
+    func didUpdateRecord(for trackerId: UUID) {
+        let visiblePaths = collectionView.indexPathsForVisibleItems
+        if let pathUpdate = visiblePaths.first(where: {
+            trackerDataProvider?.getTrackerCoreData(at: $0).id == trackerId
+        }) {
+            collectionView.reloadItems(at: [pathUpdate])
+        }
     }
 }
 

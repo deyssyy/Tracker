@@ -1,7 +1,6 @@
-import UIKit
 import CoreData
 
-final class TrackeCategoryStore{
+final class TrackerCategoryStore{
     private let context: NSManagedObjectContext
     private let uiColorMarshalling = UIColorMarshalling()
     

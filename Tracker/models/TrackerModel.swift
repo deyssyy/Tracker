@@ -8,10 +8,10 @@ struct Tracker{
     let days: [DayOfWeek]
     
     init(id: UUID = UUID(), title: String, color: UIColor, emoji: String, days: [DayOfWeek]) {
-            self.id = id
-            self.title = title
-            self.color = color
-            self.emoji = emoji
-            self.days = days
-        }
+        self.id = id
+        self.title = title
+        self.color = color
+        self.emoji = emoji
+        self.days = days
+    }
 }
