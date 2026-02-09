@@ -108,7 +108,6 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             emojiLabel.centerXAnchor.constraint(equalTo: emojiBackgroundView.centerXAnchor),
             emojiLabel.centerYAnchor.constraint(equalTo: emojiBackgroundView.centerYAnchor),
             
-            //titleLabel.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 8),
             titleLabel.leadingAnchor.constraint(equalTo: upperView.leadingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(equalTo: upperView.trailingAnchor, constant: -12),
             titleLabel.bottomAnchor.constraint(equalTo: upperView.bottomAnchor, constant: -12),
@@ -129,6 +128,17 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         ])
     }
     
+    override func prepareForReuse() {
+        plusButton.isSelected = false
+        plusButton.alpha = 1.0
+        plusButton.isEnabled = true
+        plusButton.backgroundColor = nil
+        upperView.backgroundColor = nil
+        titleLabel.text = nil
+        emojiLabel.text = nil
+        daysLabel.text = nil
+    }
+    
     // MARK: - Configuration
     
     func configure(tracker: Tracker, isCompleted: Bool, completionCount: Int, isFuture: Bool) {
@@ -137,12 +147,13 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         upperView.backgroundColor = tracker.color
         plusButton.backgroundColor = tracker.color
         plusButton.isSelected = isCompleted
-        plusButton.alpha = isCompleted ? 0.3 : 1.0
+        
         if isFuture{
             plusButton.isEnabled = false
             plusButton.alpha = 0.3
         }else{
             plusButton.isEnabled = true
+            plusButton.alpha = isCompleted ? 0.3 : 1.0
         }
         daysLabel.text = "\(completionCount) дней"
     }
@@ -151,12 +162,8 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     
     @objc private func plusButtonTapped() {
         if plusButton.isSelected == false{
-            plusButton.isSelected = true
-            plusButton.alpha = 0.3
             delegate?.increaceDaysCount(in: self)
         }else{
-            plusButton.isSelected = false
-            plusButton.alpha = 1.0
             delegate?.decreaceDaysCount(in: self)
         }
     }

@@ -1,6 +1,5 @@
 import UIKit
 
-// Модель для удобного доступа к цвету и его имени
 struct TrackerColorSelection {
     let name: String
     let uiColor: UIColor
