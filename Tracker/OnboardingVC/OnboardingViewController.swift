@@ -65,25 +65,14 @@ final class OnboardingViewController:UIPageViewController {
     }
     
     @objc private func actionButtonTapped(){
-        guard let currentVC = viewControllers?.first as? OnboardingContentViewController,
-              let currentIndex = pages.firstIndex(of: currentVC) else { return }
-        let nextIndex = currentIndex + 1
-        if nextIndex == pages.count{
-            UserDefaults.standard.set(true, forKey: "notFirstAppLaunch")
-            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                  let window = windowScene.windows.first else { return }
-            
-            let tabBarController = TabBarController()
-            window.rootViewController = tabBarController
-            window.makeKeyAndVisible()
-            return
-        }
+        UserDefaults.standard.set(true, forKey: "notFirstAppLaunch")
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else { return }
         
-        let nextVC = pages[nextIndex]
-        
-        setViewControllers([nextVC], direction: .forward, animated: true, completion:{[weak self] _ in
-            self?.pageControl.currentPage = nextIndex
-        })
+        let tabBarController = TabBarController()
+        window.rootViewController = tabBarController
+        window.makeKeyAndVisible()
+        return
     }
 }
 

@@ -21,7 +21,10 @@ protocol TrackerDataProviderProtocol: AnyObject {
     func fetchSectionName(at section: Int) -> String?
     
     func addTracker(_ tracker: Tracker, to categoryName: String)
+    func deleteTracker(at indexPath: IndexPath)
+    func updateTracker(_ tracker: Tracker, at indexPath: IndexPath, to categoryName: String)
     func updateFilters(for date: Date)
+    func togglePin(forTrackerAt indexPath: IndexPath)
     
     func getTrackerCoreData(at indexPath: IndexPath) -> TrackerCoreData
     func checkIsCompleted(_ trackerId: UUID, date: Date) -> Bool
@@ -46,6 +49,7 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
         let fetchRequest = TrackerCoreData.fetchRequest()
         
         fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \TrackerCoreData.isPinned, ascending: false),
             NSSortDescriptor(keyPath: \TrackerCoreData.category?.name, ascending: true),
             NSSortDescriptor(keyPath: \TrackerCoreData.title, ascending: true)
         ]
@@ -56,7 +60,7 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
             managedObjectContext: context,
-            sectionNameKeyPath: "category.name",
+            sectionNameKeyPath: #keyPath(TrackerCoreData.sectionName),
             cacheName: nil
         )
         
@@ -111,7 +115,8 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
             title: title,
             color: color,
             emoji: emoji,
-            days: days
+            days: days,
+            isPinned: trackerCoreData.isPinned
         )
     }
     
@@ -135,6 +140,30 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
         } catch {
             print("Error fetching/creating category: \(error)")
         }
+    }
+    
+    func deleteTracker(at indexPath: IndexPath){
+        let trackerToDelete = fetchedResultsController.object(at: indexPath)
+        
+        trackerStore.deleteTracker(trackerToDelete)
+    }
+    
+    func updateTracker(_ tracker: Tracker, at indexPath: IndexPath, to categoryName: String) {
+        let trackerCoreData = getTrackerCoreData(at: indexPath)
+        
+        let categoryRequest = TrackerCategoryCoreData.fetchRequest()
+        categoryRequest.predicate = NSPredicate(format: "name == %@", categoryName)
+        
+        guard let categories = try? context.fetch(categoryRequest),
+              let categoryCoreData = categories.first else { return }
+        
+        trackerStore.updateTracker(tracker: tracker, trackerCoreData: trackerCoreData, category: categoryCoreData)
+        trackerStore.deleteInvalidRecords(for: tracker.id, newSchedule: tracker.days)
+    }
+    
+    func togglePin(forTrackerAt indexPath: IndexPath) {
+        let trackerCoreData = getTrackerCoreData(at: indexPath)
+        trackerStore.togglePin(for: trackerCoreData)
     }
     
     func fetchSectionName(at section: Int) -> String? {
@@ -235,3 +264,8 @@ extension TrackerDataProvider: NSFetchedResultsControllerDelegate {
     }
 }
 
+extension TrackerCoreData {
+    @objc var sectionName: String? {
+        return isPinned ? "Закрепленные" : category?.name
+    }
+}

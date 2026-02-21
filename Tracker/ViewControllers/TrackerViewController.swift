@@ -183,10 +183,11 @@ final class TrackerViewController: UIViewController{
     }
     //MARK: BUTTONS ATIONS
     @objc private func addNewTask(){
-        let newTrackeVc = NewTrackerViewController()
-        newTrackeVc.delegate = self
-        let navigationVC = UINavigationController(rootViewController: newTrackeVc)
+        let newTrackerVc = NewTrackerViewController()
+        newTrackerVc.delegate = self
+        let navigationVC = UINavigationController(rootViewController: newTrackerVc)
         navigationVC.modalPresentationStyle = .popover
+        navigationVC.presentationController?.delegate = newTrackerVc
         present(navigationVC, animated: true)
     }
     
@@ -220,6 +221,40 @@ extension TrackerViewController: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.frame.width, height: 46)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemsAt indexPaths: [IndexPath], point: CGPoint) -> UIContextMenuConfiguration? {
+        guard let indexPath = indexPaths.first else { return nil }
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) {[weak self] _ in
+            let tracker = self?.trackerDataProvider?.fetchTracker(at: indexPath)
+            let pinAction = UIAction(title: tracker?.isPinned == true ? "Открепить" : "Закрепить"){ [weak self] _ in
+                guard let self = self else { return }
+                
+                self.trackerDataProvider?.togglePin(forTrackerAt: indexPath)
+            }
+            let editAction = UIAction(title: "Редактировать"){ _ in
+                guard let self = self,
+                      let tracker = self.trackerDataProvider?.fetchTracker(at: indexPath),
+                      let completedDays = self.trackerDataProvider?.countOfCompletedDays(tracker.id),
+                      let categoryName = self.trackerDataProvider?.fetchSectionName(at: indexPath.section) else { return }
+                let editVC = NewTrackerViewController(mode: .edit(
+                    tracker: tracker,
+                    categoryName: categoryName,
+                    completedDays: completedDays,
+                    indexPath: indexPath
+                ))
+                
+                editVC.delegate = self
+                
+                let navController = UINavigationController(rootViewController: editVC)
+                navController.modalPresentationStyle = .popover
+                self.present(navController, animated: true)
+            }
+            let deleteAction = UIAction(title: "Удалить",attributes: .destructive){ _ in
+                self?.trackerDataProvider?.deleteTracker(at: indexPath)
+            }
+            return UIMenu(children: [pinAction, editAction, deleteAction])
+        }
     }
 }
 //MARK: UICollectionViewDataSource
@@ -269,9 +304,19 @@ extension TrackerViewController: UICollectionViewDataSource {
 }
 
 extension TrackerViewController: NewTrackerViewControllerDelegate{
+    func didUpdateTracker(tracker: Tracker, for categoryName: String, indexPath: IndexPath) {
+        trackerDataProvider?.updateTracker(tracker, at: indexPath, to: categoryName)
+    }
+    
+    func didCloseWithNoNewTracker() {
+        trackerDataProvider?.updateFilters(for: datePicker.date)
+        collectionView.reloadData()
+    }
+    
     func didCreateNewTracker(_ tracker: Tracker, for categoryName: String) {
         trackerDataProvider?.addTracker(tracker, to: categoryName)
     }
+    
 }
 
 extension TrackerViewController: TrackerDataProviderDelegate{

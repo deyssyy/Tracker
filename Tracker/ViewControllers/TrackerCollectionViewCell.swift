@@ -14,6 +14,18 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private let upperView = UIView()
     private let lowerView = UIView()
     
+    private let pinImageView: UIImageView = {
+        let imageView = UIImageView()
+        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .regular)
+        let image = UIImage(systemName: "pin.fill", withConfiguration: config)
+        imageView.contentMode = .center
+        imageView.image = image
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .white
+        imageView.isHidden = true
+        return imageView
+    }()
+    
     private let emojiLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16,weight: .medium)
@@ -87,6 +99,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         upperView.addSubview(emojiBackgroundView)
         emojiBackgroundView.addSubview(emojiLabel)
         upperView.addSubview(titleLabel)
+        upperView.addSubview(pinImageView)
         
         contentView.addSubview(lowerView)
         lowerView.addSubview(daysLabel)
@@ -111,6 +124,11 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             titleLabel.leadingAnchor.constraint(equalTo: upperView.leadingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(equalTo: upperView.trailingAnchor, constant: -12),
             titleLabel.bottomAnchor.constraint(equalTo: upperView.bottomAnchor, constant: -12),
+            
+            pinImageView.trailingAnchor.constraint(equalTo: upperView.trailingAnchor, constant: -4),
+            pinImageView.centerYAnchor.constraint(equalTo: emojiLabel.centerYAnchor),
+            pinImageView.heightAnchor.constraint(equalToConstant: 24),
+            pinImageView.widthAnchor.constraint(equalToConstant: 24),
             
             lowerView.topAnchor.constraint(equalTo: upperView.bottomAnchor),
             lowerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -156,6 +174,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             plusButton.alpha = isCompleted ? 0.3 : 1.0
         }
         daysLabel.text = "\(completionCount) дней"
+        pinImageView.isHidden = !tracker.isPinned
     }
     
     //MARK: - Button action
