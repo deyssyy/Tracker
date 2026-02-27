@@ -49,9 +49,9 @@ final class ScheduleViewController: UIViewController{
     
     private let aproveButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle("schedule_vc_aprove_button_title".localized, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.whiteNight, for: .normal)
         button.backgroundColor = .blackDay
         button.layer.cornerRadius = 16
         return button
@@ -59,8 +59,8 @@ final class ScheduleViewController: UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-        self.title = "Расписание"
+        view.backgroundColor = .whiteNight
+        self.title = "schedule_vc_header_title".localized
         setupNavigationController()
         setupButton()
         setupTableView()
@@ -68,20 +68,22 @@ final class ScheduleViewController: UIViewController{
     
     private func setupNavigationController(){
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
+        appearance.configureWithTransparentBackground()
         appearance.shadowColor = .clear
         appearance.shadowImage = UIImage()
-        appearance.largeTitleTextAttributes = [
+        
+        let textAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.blackDay,
             .font: UIFont.systemFont(ofSize: 16, weight: .medium)
         ]
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.blackDay,
-            .font: UIFont.systemFont(ofSize: 16, weight: .medium)
-        ]
+        
+        appearance.largeTitleTextAttributes = textAttributes
+        appearance.titleTextAttributes = textAttributes
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
+        
+        navigationController?.navigationBar.isTranslucent = true
     }
     
     private func setupButton(){

@@ -4,9 +4,9 @@ final class NewCategoryViewController: UIViewController{
     private let textField = TextFieldWithPadding()
     private let doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle("new_category_vc_done_button_title".localized, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.whiteNight, for: .normal)
         button.backgroundColor = .gray
         button.isEnabled = false
         button.layer.cornerRadius = 16
@@ -18,7 +18,7 @@ final class NewCategoryViewController: UIViewController{
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         label.textColor = .redWarning
         label.textAlignment = .center
-        label.text = "Ограничение 38 символов"
+        label.text = "warning_label_title".localized
         label.isHidden = true
         return label
     }()
@@ -37,7 +37,8 @@ final class NewCategoryViewController: UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Новая категория"
+        self.title = "new_category_vc_header_title".localized
+        view.backgroundColor = .whiteNight
         setupNavigationController()
         setupTextFieldAndWarningLabel()
         setupDoneButton()
@@ -46,20 +47,22 @@ final class NewCategoryViewController: UIViewController{
     
     private func setupNavigationController(){
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
+        appearance.configureWithTransparentBackground()
         appearance.shadowColor = .clear
         appearance.shadowImage = UIImage()
-        appearance.largeTitleTextAttributes = [
+        
+        let textAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.blackDay,
             .font: UIFont.systemFont(ofSize: 16, weight: .medium)
         ]
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.blackDay,
-            .font: UIFont.systemFont(ofSize: 16, weight: .medium)
-        ]
+        
+        appearance.largeTitleTextAttributes = textAttributes
+        appearance.titleTextAttributes = textAttributes
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
+        
+        navigationController?.navigationBar.isTranslucent = true
     }
     
     private func setupDoneButton(){
@@ -78,7 +81,9 @@ final class NewCategoryViewController: UIViewController{
     private func setupTextFieldAndWarningLabel(){
         textField.delegate = self
         textField.clipsToBounds = true
-        textField.placeholder = "Введите название категории"
+        textField.placeholder = "new_category_vc_textField_placeholder_title".localized
+        textField.layer.cornerRadius = 16
+        textField.backgroundColor = .backgroundDay
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.clearButtonMode = .whileEditing
         warningLabel.translatesAutoresizingMaskIntoConstraints = false

@@ -62,7 +62,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(systemName: "plus"), for: .normal)
         button.setImage(UIImage(systemName: "checkmark"), for: .selected)
-        button.tintColor = .white
+        button.tintColor = .whiteNight
         button.layer.cornerRadius = 17
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -173,13 +173,17 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             plusButton.isEnabled = true
             plusButton.alpha = isCompleted ? 0.3 : 1.0
         }
-        daysLabel.text = "\(completionCount) дней"
+        daysLabel.text = String.localizedStringWithFormat(
+            NSLocalizedString("numberOfDays", comment: "Количество дней"),
+            completionCount
+        )
         pinImageView.isHidden = !tracker.isPinned
     }
     
     //MARK: - Button action
     
     @objc private func plusButtonTapped() {
+        AnalyticsService.reportClick(.track)
         if plusButton.isSelected == false{
             delegate?.increaceDaysCount(in: self)
         }else{

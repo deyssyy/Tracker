@@ -23,12 +23,13 @@ protocol TrackerDataProviderProtocol: AnyObject {
     func addTracker(_ tracker: Tracker, to categoryName: String)
     func deleteTracker(at indexPath: IndexPath)
     func updateTracker(_ tracker: Tracker, at indexPath: IndexPath, to categoryName: String)
-    func updateFilters(for date: Date)
+    func updateFilters(for date: Date, searchText: String?, filter: FilterType)
     func togglePin(forTrackerAt indexPath: IndexPath)
     
     func getTrackerCoreData(at indexPath: IndexPath) -> TrackerCoreData
     func checkIsCompleted(_ trackerId: UUID, date: Date) -> Bool
     func countOfCompletedDays(_ trackerId: UUID) -> Int
+    func isSelectedDayEmpty(date: Date) -> Bool
 }
 
 final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
@@ -38,6 +39,8 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
     private let context: NSManagedObjectContext
     private let trackerStore: TrackerStore
     private let uiColorMarshalling = UIColorMarshalling()
+    private let statisticsDataProvider: StatisticsDataProvider
+    
     
     private var insertedIndexPaths: [IndexPath] = []
     private var deletedIndexPaths: [IndexPath] = []
@@ -75,10 +78,11 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
         return controller
     }()
     
-    init(dataStore: TrackerStore, delegate: TrackerDataProviderDelegate ) {
+    init(dataStore: TrackerStore, delegate: TrackerDataProviderDelegate, statisticsDataProvider: StatisticsDataProvider) {
         context = CoreDataStack.shared.context
         self.trackerStore = dataStore
         self.delegate = delegate
+        self.statisticsDataProvider = statisticsDataProvider
     }
     
     // MARK: - Внешние методы для UI
@@ -170,9 +174,35 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
         fetchedResultsController.sections?[section].name
     }
     
-    func updateFilters(for date: Date) {
+    func updateFilters(for date: Date, searchText: String? = nil, filter: FilterType) {
         let dayNumber = Calendar.current.component(.weekday, from: date)
-        fetchedResultsController.fetchRequest.predicate = NSPredicate(format: "days CONTAINS %@", String(dayNumber))
+        
+        var predicates: [NSPredicate] = [
+            NSPredicate(format: "days CONTAINS %@", String(dayNumber))
+        ]
+        
+        if let text = searchText, !text.isEmpty {
+            let searchPredicate = NSPredicate(format: "title CONTAINS[cd] %@", text)
+            predicates.append(searchPredicate)
+        }
+        
+        let dateStart = Calendar.current.startOfDay(for: date)
+        let dateEnd = Calendar.current.date(byAdding: .day, value: 1, to: dateStart)!
+        
+        switch filter {
+        case .completed:
+            let subPredicate = NSPredicate(format: "ANY record.date >= %@ AND ANY record.date < %@", dateStart as NSDate, dateEnd as NSDate)
+            predicates.append(subPredicate)
+            
+        case .uncompleted:
+            let subPredicate = NSPredicate(format: "SUBQUERY(record, $record, $record.date >= %@ AND $record.date < %@).@count == 0", dateStart as NSDate, dateEnd as NSDate)
+            predicates.append(subPredicate)
+            
+        case .all, .today:
+            break
+        }
+        
+        fetchedResultsController.fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         
         do {
             try fetchedResultsController.performFetch()
@@ -212,6 +242,19 @@ final class TrackerDataProvider: NSObject, TrackerDataProviderProtocol {
             return count
         }catch{
             return 0
+        }
+    }
+    
+    func isSelectedDayEmpty(date: Date) -> Bool{
+        let request = TrackerCoreData.fetchRequest()
+        let dayNumber = Calendar.current.component(.weekday, from: date)
+        request.predicate = NSPredicate(format: "days CONTAINS %@", String(dayNumber))
+        
+        do {
+            let count = try context.count(for: request)
+            return count > 0
+        } catch {
+            return false
         }
     }
 }
@@ -260,6 +303,12 @@ extension TrackerDataProvider: NSFetchedResultsControllerDelegate {
             insertedSections: insertedSections,
             deletedSections: deletedSections
         )
+        let trackers = fetchedResultsController.fetchedObjects ?? []
+        
+        let recordRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        let records = (try? context.fetch(recordRequest)) ?? []
+        
+        statisticsDataProvider.updateStatistics(with: records, allTrackers: trackers)
         delegate?.didUpdate(update)
     }
 }

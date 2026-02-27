@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25C56" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="StatisticCoreData" representedClassName="StatisticCoreData" syncable="YES" codeGenerationType="class">
+        <attribute name="averageValue" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="bestPeriod" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="idealDays" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="totalCompleted" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
     <entity name="TrackerCategoryCoreData" representedClassName="TrackerCategoryCoreData" syncable="YES" codeGenerationType="class">
         <attribute name="name" attributeType="String"/>
         <relationship name="tracker" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="TrackerCoreData" inverseName="category" inverseEntity="TrackerCoreData"/>
