@@ -73,7 +73,7 @@ final class EditCategoryViewController: UIViewController{
         textField.placeholder = "edit_category_vc_textfield_placeholder_title".localized
         textField.text = oldName
         textField.layer.cornerRadius = 16
-        textField.backgroundColor = .backgroundDay
+        textField.backgroundColor = .backgroundDay.withAlphaComponent(0.3)
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.clearButtonMode = .whileEditing
         view.addSubview(textField)

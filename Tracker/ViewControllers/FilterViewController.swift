@@ -34,6 +34,7 @@ final class FilterViewController: UIViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "filter_vc_label_title".localized
+        view.backgroundColor = .whiteNight
         setupNavigationController()
         setupFiltersTableView()
     }

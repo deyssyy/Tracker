@@ -28,6 +28,7 @@ final class CategoryViewController: UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .whiteNight
         self.title = "category_vc_header_title".localized
         setupNavigationController()
         setupCreateNewCategoryButton()

@@ -83,7 +83,7 @@ final class NewCategoryViewController: UIViewController{
         textField.clipsToBounds = true
         textField.placeholder = "new_category_vc_textField_placeholder_title".localized
         textField.layer.cornerRadius = 16
-        textField.backgroundColor = .backgroundDay
+        textField.backgroundColor = .backgroundDay.withAlphaComponent(0.3)
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.clearButtonMode = .whileEditing
         warningLabel.translatesAutoresizingMaskIntoConstraints = false
