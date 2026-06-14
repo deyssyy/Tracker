@@ -104,7 +104,7 @@ final class NewTrackerViewController: UIViewController, UIAdaptivePresentationCo
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         label.textColor = .redWarning
         label.textAlignment = .center
-        label.text = "Ограничение 38 символов"
+        label.text = "warning_label_title".localized
         label.isHidden = true
         return label
     }()
@@ -122,7 +122,7 @@ final class NewTrackerViewController: UIViewController, UIAdaptivePresentationCo
     
     private let cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Отмена", for: .normal)
+        button.setTitle("new_tracker_vc_cancel_button_title".localized, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.setTitleColor(.red, for: .normal)
         button.layer.borderWidth = 1
@@ -133,9 +133,9 @@ final class NewTrackerViewController: UIViewController, UIAdaptivePresentationCo
     
     private let createButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Создать", for: .normal)
+        button.setTitle("new_tracker_vc_create_button_title".localized, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.whiteNight, for: .normal)
         button.backgroundColor = .grayButton
         button.layer.cornerRadius = 16
         button.isEnabled = false
@@ -162,8 +162,8 @@ final class NewTrackerViewController: UIViewController, UIAdaptivePresentationCo
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-        self.title = "Новая привычка"
+        view.backgroundColor = .whiteNight
+        self.title = "new_tracker_vc_header_title".localized
         textField.delegate = self
         setupNavigationController()
         setupScrollViewAndContentView()
@@ -186,11 +186,14 @@ final class NewTrackerViewController: UIViewController, UIAdaptivePresentationCo
     private func configureEditMode() {
         guard case let .edit(tracker, _, completedDays, _) = mode else { return }
         
-        self.title = "Редактирование привычки"
-        createButton.setTitle("Сохранить", for: .normal)
+        self.title = "edit_tracker_vc_header_title".localized
+        createButton.setTitle("edit_tracker_vc_save_button_title".localized, for: .normal)
         textField.text = tracker.title
         
-        daysLabel.text = "\(completedDays) дней"
+        daysLabel.text = String.localizedStringWithFormat(
+            NSLocalizedString("numberOfDays", comment: "Количество дней"),
+            completedDays
+        )
         daysLabel.isHidden = false
         
         checkCreateButtonState()
@@ -198,20 +201,22 @@ final class NewTrackerViewController: UIViewController, UIAdaptivePresentationCo
     
     private func setupNavigationController(){
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
+        appearance.configureWithTransparentBackground()
         appearance.shadowColor = .clear
         appearance.shadowImage = UIImage()
-        appearance.largeTitleTextAttributes = [
+        
+        let textAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.blackDay,
             .font: UIFont.systemFont(ofSize: 16, weight: .medium)
         ]
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.blackDay,
-            .font: UIFont.systemFont(ofSize: 16, weight: .medium)
-        ]
+        
+        appearance.largeTitleTextAttributes = textAttributes
+        appearance.titleTextAttributes = textAttributes
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
+        
+        navigationController?.navigationBar.isTranslucent = true
     }
     
     private func checkCreateButtonState(){
@@ -271,7 +276,7 @@ final class NewTrackerViewController: UIViewController, UIAdaptivePresentationCo
             .foregroundColor: UIColor.lightGray,
             .font: UIFont.systemFont(ofSize: 17)
         ]
-        textField.attributedPlaceholder = NSAttributedString(string: "Введите название трекера", attributes: placeholderAttributes)
+        textField.attributedPlaceholder = NSAttributedString(string: "new_tracker_vc_textField_placeholder_title".localized, attributes: placeholderAttributes)
         textField.clearButtonMode = .whileEditing
         textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         textField.heightAnchor.constraint(equalToConstant: 75).isActive = true
@@ -378,6 +383,12 @@ extension NewTrackerViewController: UITextFieldDelegate{
         warningLabel.isHidden = newString.count < maxLength
         return newString.count <= maxLength
     }
+    
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        warningLabel.isHidden = true
+        checkCreateButtonState() 
+        return true
+    }
 }
 
 extension NewTrackerViewController: UITableViewDelegate {
@@ -402,8 +413,10 @@ extension NewTrackerViewController: UITableViewDelegate {
         } else {
             let cell = tableView.cellForRow(at: indexPath)
             var selectedStates = cell?.detailTextLabel?.text
-            if selectedStates == "Каждый день"{
-                selectedStates = "Пн, Вт, Ср, Чт, Пт, Сб, Вс"
+            if selectedStates == "new_tracker_vc_schedule_subtitle_for_every_day".localized{
+                selectedStates = DayOfWeek.allCases
+                    .map { $0.shortName }
+                    .joined(separator: ", ")
             }
             let scheduleVC = ScheduleViewController(selectedStates:selectedStates)
             scheduleVC.delegate = self
@@ -421,15 +434,16 @@ extension NewTrackerViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
+        cell.backgroundColor = .backgroundDay
         cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         cell.detailTextLabel?.textColor = .gray
         if indexPath.row == 0 {
-            cell.textLabel?.text = "Категория"
+            cell.textLabel?.text = "new_tracker_vc_category_table_cell_title".localized
             cell.detailTextLabel?.text = selectedCategoryName
         } else {
-            cell.textLabel?.text = "Расписание"
+            cell.textLabel?.text = "new_tracker_vc_schedule_table_cell_title".localized
             if selectedSchedule.count == 7 {
-                cell.detailTextLabel?.text = "Каждый день"
+                cell.detailTextLabel?.text = "new_tracker_vc_schedule_subtitle_for_every_day".localized
             } else {
                 let shortNames = selectedSchedule.map { $0.shortName }
                 cell.detailTextLabel?.text = shortNames.joined(separator: ", ")
@@ -515,7 +529,6 @@ extension NewTrackerViewController: UICollectionViewDataSource {
             
             if emoji == selectedEmoji {
                 cell.changeSelection(true)
-                //cell.isSelected = true
                 selectedEmojiIndexPath = indexPath
                 collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
             } else {
@@ -559,7 +572,7 @@ extension NewTrackerViewController: UICollectionViewDataSource {
             return UICollectionReusableView()
         }
         
-        header.titleLabel.text = indexPath.section == 0 ? "Emoji" : "Цвет"
+        header.titleLabel.text = indexPath.section == 0 ? "new_tracker_vc_collection_section_emoji_title".localized : "new_tracker_vc_collection_section_color_title".localized
         
         return header
     }

@@ -17,13 +17,15 @@ final class TrackerRecordDataProvider: NSObject, TrackerRecordDataProviderProtoc
     
     private let context: NSManagedObjectContext
     private let trackerRecordStore: TrackerRecordStore
+    private let statisticsDataProvider: StatisticsDataProvider
     
     private let fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>
     
-    init(dataStore: TrackerRecordStore, delegate: TrackerRecordDataProviderDelegate) {
+    init(dataStore: TrackerRecordStore, delegate: TrackerRecordDataProviderDelegate, statisticsDataProvider: StatisticsDataProvider) {
         context = CoreDataStack.shared.context
         self.trackerRecordStore = dataStore
         self.delegate = delegate
+        self.statisticsDataProvider = statisticsDataProvider
         
         let fetchRequest = TrackerRecordCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)]
@@ -85,7 +87,13 @@ final class TrackerRecordDataProvider: NSObject, TrackerRecordDataProviderProtoc
 }
 
 extension TrackerRecordDataProvider: NSFetchedResultsControllerDelegate{
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        let records = fetchedResultsController.fetchedObjects ?? []
+        
+        let trackerRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        let allTrackers = (try? context.fetch(trackerRequest)) ?? []
+        
+        statisticsDataProvider.updateStatistics(with: records, allTrackers: allTrackers)
     }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
@@ -93,8 +101,5 @@ extension TrackerRecordDataProvider: NSFetchedResultsControllerDelegate{
               let trackerId = record.tracker?.id else { return }
         
         delegate?.didUpdateRecord(for: trackerId)
-    }
-    
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
     }
 }

@@ -2,14 +2,14 @@ import UIKit
 
 final class OnboardingViewController:UIPageViewController {
     private let pages = [
-        OnboardingContentViewController(labelText: "Отслеживайте только то, что хотите", imageName: "onborad1"),
-        OnboardingContentViewController(labelText: "Даже если это не литры воды и йога", imageName: "onborad2")
+        OnboardingContentViewController(labelText: "onboard_1_label".localized, imageName: "onborad1"),
+        OnboardingContentViewController(labelText: "onboard_2_label".localized, imageName: "onborad2")
     ]
     
     private let actionButton: UIButton = {
         let button = UIButton(type: .custom)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
-        button.setTitle("Вот это технологии!", for: .normal)
+        button.setTitle("onboard_button_title".localized, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = .blackDay
         button.layer.cornerRadius = 16

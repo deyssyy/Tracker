@@ -3,9 +3,9 @@ import UIKit
 final class CategoryViewController: UIViewController{
     private let createNewCategoryButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Добавить Категория", for: .normal)
+        button.setTitle("category_vc_add_button_title".localized, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.whiteNight, for: .normal)
         button.backgroundColor = .blackDay
         button.layer.cornerRadius = 16
         return button
@@ -28,7 +28,8 @@ final class CategoryViewController: UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Категория"
+        view.backgroundColor = .whiteNight
+        self.title = "category_vc_header_title".localized
         setupNavigationController()
         setupCreateNewCategoryButton()
         setupDefaultImageAndLabel()
@@ -48,20 +49,22 @@ final class CategoryViewController: UIViewController{
     
     private func setupNavigationController(){
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
+        appearance.configureWithTransparentBackground()
         appearance.shadowColor = .clear
         appearance.shadowImage = UIImage()
-        appearance.largeTitleTextAttributes = [
+        
+        let textAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.blackDay,
             .font: UIFont.systemFont(ofSize: 16, weight: .medium)
         ]
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.blackDay,
-            .font: UIFont.systemFont(ofSize: 16, weight: .medium)
-        ]
+        
+        appearance.largeTitleTextAttributes = textAttributes
+        appearance.titleTextAttributes = textAttributes
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
+        
+        navigationController?.navigationBar.isTranslucent = true
     }
     
     private func bind() {
@@ -90,10 +93,7 @@ final class CategoryViewController: UIViewController{
     
     private func setupDefaultImageAndLabel(){
         defaultImage.image = UIImage(resource: .noTask)
-        defaultLabel.text = """
-            Привычки и события можно
-            объединить по смыслу
-            """
+        defaultLabel.text = "category_vc_default_label_title".localized
         defaultLabel.font = UIFont.systemFont(ofSize: 12)
         defaultLabel.textColor = .blackDay
         defaultLabel.numberOfLines = 2
@@ -159,8 +159,7 @@ extension CategoryViewController: UITableViewDelegate{
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil){ [weak self] _ in
-            let editAction = UIAction(title: "Редактировать"){ _ in
-                print("редактирование строки")
+            let editAction = UIAction(title: "category_vc_action_edit_title".localized){ _ in
                 guard let self = self,
                       let cell = tableView.cellForRow(at: indexPath),
                       let text = cell.textLabel?.text else { return }
@@ -169,14 +168,13 @@ extension CategoryViewController: UITableViewDelegate{
                 navigationVC.modalPresentationStyle = .popover
                 self.present(navigationVC, animated: true)
             }
-            let deleteAction = UIAction(title: "Удалить", attributes: .destructive){[weak self] _ in
-                print("удаление строки")
+            let deleteAction = UIAction(title: "category_vc_action_delete_title".localized, attributes: .destructive){[weak self] _ in
                 guard let self = self else { return }
-                let alert = UIAlertController(title: "Эта категория точно не нужна?", message: "", preferredStyle: .actionSheet)
-                let deleteAction = UIAlertAction(title: "Удалить",style: .destructive){ _ in
+                let alert = UIAlertController(title: "category_vc_delete_alert_title".localized, message: "", preferredStyle: .actionSheet)
+                let deleteAction = UIAlertAction(title:  "category_vc_delete_alert_delete_button_title".localized,style: .destructive){ _ in
                     self.viewModel.deleteCategory(at: indexPath)
                 }
-                let cancelAction = UIAlertAction(title: "Отменить", style: .cancel){_ in
+                let cancelAction = UIAlertAction(title: "category_vc_delete_alert_cancel_button_title".localized, style: .cancel){_ in
                     alert.dismiss(animated: true)
                 }
                 alert.addAction(deleteAction)

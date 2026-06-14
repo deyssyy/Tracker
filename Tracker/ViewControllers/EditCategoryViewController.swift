@@ -4,9 +4,9 @@ final class EditCategoryViewController: UIViewController{
     let textField = TextFieldWithPadding()
     let doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle("edit_category_vc_done_button_title".localized, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.whiteNight, for: .normal)
         button.backgroundColor = .blackDay
         button.layer.cornerRadius = 16
         return button
@@ -27,7 +27,8 @@ final class EditCategoryViewController: UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Редактирование категории"
+        self.title = "edit_category_vc_header_title".localized
+        view.backgroundColor = .whiteNight
         setupNavigationController()
         setupTextField()
         setupDoneButton()
@@ -36,20 +37,22 @@ final class EditCategoryViewController: UIViewController{
     
     private func setupNavigationController(){
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
+        appearance.configureWithTransparentBackground()
         appearance.shadowColor = .clear
         appearance.shadowImage = UIImage()
-        appearance.largeTitleTextAttributes = [
+        
+        let textAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.blackDay,
             .font: UIFont.systemFont(ofSize: 16, weight: .medium)
         ]
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.blackDay,
-            .font: UIFont.systemFont(ofSize: 16, weight: .medium)
-        ]
+        
+        appearance.largeTitleTextAttributes = textAttributes
+        appearance.titleTextAttributes = textAttributes
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
+        
+        navigationController?.navigationBar.isTranslucent = true
     }
     
     private func setupDoneButton(){
@@ -67,8 +70,10 @@ final class EditCategoryViewController: UIViewController{
     
     private func setupTextField(){
         textField.delegate = self
-        textField.placeholder = "Введите название категории"
+        textField.placeholder = "edit_category_vc_textfield_placeholder_title".localized
         textField.text = oldName
+        textField.layer.cornerRadius = 16
+        textField.backgroundColor = .backgroundDay.withAlphaComponent(0.3)
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.clearButtonMode = .whileEditing
         view.addSubview(textField)

@@ -1,4 +1,3 @@
-
 enum Emojis: String, CaseIterable, Codable {
     case smilingFace = "🙂"
     case heartEyesCat = "😻"
